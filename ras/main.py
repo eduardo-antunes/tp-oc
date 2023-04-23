@@ -3,14 +3,11 @@
 # Funções de montagem: as funções abaixo realizam a montagem de cada
 # instrução, utilizando os valores dados como argumentos
 
-def assemble_sub(rd, rs1, rs2):
-    print("sub", rd, rs1, rs2)
+def assemble_rtype(opcode, funct3, funct7, rd, rs1, rs2):
+    print(f"{funct7:07b}{rs2:05b}{rs1:05b}{funct3:03b}{rd:05b}{opcode:07b}")
 
-def assemble_or(rd, rs1, rs2):
-    print("or", rd, rs1, rs2)
-
-def assemble_andi(rd, rs1, imm):
-    print("andi", rd, rs1, imm)
+def assemble_itype(opcode, funct3, rd, rs1, number):
+    print(f"{number:012b}{rs1:05b}{funct3:03b}{rd:05b}{opcode:07b}")
 
 # Funções de processamento de texto: os argumentos no arquivo fonte são
 # dados em forma textual e vêm em diferentes formatos. Para cada formato,
@@ -18,11 +15,11 @@ def assemble_andi(rd, rs1, imm):
 
 # RRR: reg, reg, reg
 def get_registers(args):
-    reg_numbers = []
     registers = args.split(',')
-    for reg in registers:
-        reg_numbers.append(int(reg[1:]))
-    return reg_numbers
+    rd = int(registers[0][1:])
+    rs1 = int(registers[1][1:])
+    rs2 = int(registers[2][1:])
+    return rd, rs1, rs2
 
 # RRI: reg, reg, imediato
 def get_rri(args):
@@ -30,7 +27,7 @@ def get_rri(args):
     rd = int(rri[0][1:])
     rs1 = int(rri[1][1:])
     imm = int(rri[2])
-    return (rd, rs1, imm)
+    return rd, rs1, imm
 
 # Função principal:
 
@@ -59,24 +56,36 @@ def main(argv):
 
             elif instruction == "sub":
                 # sub: Subtract, subtrai rs2 de rs1 e coloca o resultado em rd
-                data = get_registers(others)
-                assemble_sub(*data)
+                funct3 = 0b000
+                funct7 = 0b0100000
+                opcode = 0b0110011
+                rd, rs1, rs2 = get_registers(others)
+                assemble_rtype(opcode, funct3, funct7, rd, rs1, rs2)
 
             elif instruction == "or":
                 # or: Or, faz um or bit a bit entre rs1 e rs2 e coloca o resultado em rd
-                data = get_registers(others)
-                assemble_or(*data)
+                funct3 = 0b110
+                funct7 = 0b0000000
+                opcode = 0b0110011
+                rd, rs1, rs2 = get_registers(others)
+                assemble_rtype(opcode, funct3, funct7, rd, rs1, rs2)
 
             elif instruction == "andi":
                 # andi: And Immediate, faz um and bit a bit entre rs1 e um valor
                 # imediato e coloca o resultado em rd
-                data = get_rri(others)
-                assemble_andi(*data)
+                funct3 = 0b111
+                opcode = 0b0010011
+                rd, rs1, number = get_rri(others)
+                assemble_itype(opcode, funct3, rd, rs1, number)
 
             elif instruction == "srl":
                 # srl: Shift Right (Logic), desloca os bits de rs1 uma certa quantidade
                 # de casas para a direita (deslocamento lógico)
-                pass
+                funct3 = 0b101
+                funct7 = 0b0000000
+                opcode = 0b0110011
+                rd, rs1, rs2 = get_registers(others)
+                assemble_rtype(opcode, funct3, funct7, rd, rs1, rs2)
 
             elif instruction == "beq":
                 # beq: Branch if EQual, pula para o endereço dado se rs1 e rs2 forem iguais
