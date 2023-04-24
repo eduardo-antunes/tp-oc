@@ -16,9 +16,15 @@ def assemble_itype(opcode, funct3, rd, rs1, number):
 
 def assemble_stype(opcode, funct3, rs1, rs2, number):
     # Formato S (store)
-    n4_0 = number & 0b11111
-    n11_5 = rshift(number, 5)
-    print(f"{n11_5:07b}{rs2:05b}{rs1:05b}{funct3:03b}{n4_0:05b}{opcode:07b}")
+    front = number & 0b11111
+    back = rshift(number, 5)
+    print(f"{back:07b}{rs2:05b}{rs1:05b}{funct3:03b}{front:05b}{opcode:07b}")
+
+def assemble_sbtype(opcode, funct3, rs1, rs2, number):
+    # Formato SB (desvios condicionais)
+    front = number & 0b0100000011110
+    back = rshift(number, 5) & 0b10111111
+    print(f"{back:07b}{rs2:05b}{rs1:05b}{funct3:03b}{front:05b}{opcode:07b}")
 
 
 # Funções de processamento de texto: os argumentos no arquivo fonte são
@@ -45,7 +51,7 @@ def get_rri(args):
 def get_rrs(args):
     parts = args.split(',')
     rs1 = int(parts[0][1:])
-    others = parts[1][:-1].split('(') # )
+    others = parts[1][:-1].split('(')
     imm = int(others[0])
     rs2 = int(others[1][1:])
     return rs1, rs2, imm
@@ -116,7 +122,10 @@ def main(argv):
 
             elif instruction == "beq":
                 # beq: Branch if EQual, pula para o endereço dado se rs1 e rs2 forem iguais
-                pass
+                funct3 = 0b000
+                opcode = 0b1100111
+                rs1, rs2, addr = get_rri(others)
+                assemble_sbtype(opcode, funct3, rs1, rs2, addr)
 
             else:
                 # Instrução inválida
